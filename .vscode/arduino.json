@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:uno",
     "sketch": "mef\\mef.ino",
-    "port": "COM8"
+    "port": "COM6"
 }

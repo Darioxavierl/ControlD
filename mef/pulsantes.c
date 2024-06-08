@@ -1,54 +1,45 @@
-    #include <stdio.h>
-    #include <stdbool.h>
-    #include "pulsantes.h"
-    #include <Arduino.h>
-
-    typedef enum {
-        ESTADO_INICIAL,
-        ESTADO_UP,
-        ESTADO_DOWN
-    } estado_t;
-
-    estado_t estadoActual;
+#include <stdio.h>
+#include <stdbool.h>
+#include "pulsantes.h"
+#include <Arduino.h>
 
 
-    void init_MEF(){
-        estadoActual = ESTADO_INICIAL;   
+estado_t estadoActuale;
+
+
+void init_MEF(pulsantes* pulsadores){
+    for (int i = 0; i < pulsadores->numero_pulsadores; i++)
+    {
+        *(pulsadores->estadoActual[i]) = ESTADO_UP;
     }
+      
+}
 
-    int act_MEF(){
+int act_MEF(){
 
-        int val = digitalRead(SW1);
-        static int prevVal = 0;
-        bool cambio = val ^ prevVal;
-        switch (estadoActual)
-        {
-        case ESTADO_INICIAL:
-            // inicializar hardware
-            //Serial.println("Estado inicial");
-            pinMode(SW1,INPUT_PULLUP);
-            estadoActual = val ? ESTADO_UP : ESTADO_DOWN;
-            return 1;
-            break;
-        case ESTADO_UP:
-            //Serial.println("Estado up");
-            if (cambio)
-            {
-                estadoActual = ESTADO_DOWN;
-            }
-            return 2;
-            break;
+    int val = digitalRead(SW1);
+    static int prevVal = 0;
+    bool cambio = val ^ prevVal;
+    switch (estadoActuale)
+    {
+    case ESTADO_UP:
+        // inicializar hardware
+        estadoActuale = val ? ESTADO_UP : ESTADO_DOWN;
+        return 1;
+        break;
+    case ESTADO_FALLING:
+        //Serial.println("Estado up");
+        return 2;
+        break;
+    case ESTADO_DOWN:
 
-
-        case ESTADO_DOWN:
-            //Serial.println("Estado up");
-            if (cambio)
-            {
-                estadoActual = ESTADO_UP;
-            }
-            return 3;
-            break;
-        default:
-            init_MEF();
-        }
+        return 3;
+        break;
+    case ESTADO_RISING:
+        return 4;
+        break;
+    default:
+        //init_MEF();
+        break;
     }
+}
