@@ -26,12 +26,15 @@ typedef struct {
     int* pins[NUM_PUL];
     estado_t * estadoActual[NUM_PUL];
     uint16_t * debounceCounter[NUM_PUL];
-    int delay;
+    uint16_t delay;
     int numero_pulsadores;
+    uint8_t* presionado[NUM_PUL]; //flag presionado
+    uint8_t* liberado[NUM_PUL]; //falg liberado
+    uint8_t* val[NUM_PUL];
 }pulsantes;
 
 
 void init_MEF(pulsantes* pulsadores);
-int act_MEF();
+void act_MEF(pulsantes* pulsadores);
 
 #endif //pulsantes.H

@@ -15,9 +15,25 @@ uint8_t initBotones(){
     botones.numero_pulsadores = NUM_PUL;
 
     for (int i = 0; i < NUM_PUL; ++i) {
+        // Definiendo espacio de memoria para el arreglo de pines
         botones.pins[i] = (int*)malloc(sizeof(int));
+        // Definiendo espacio de memoria para el arreglo de estado del MEF de cada boton y asignando estado inicial
         botones.estadoActual[i] = (estado_t*)malloc(sizeof(estado_t));
+        *(botones.estadoActual[i]) = ESTADO_UP;
+        // Definiendo espacio de memoria para el arreglo de contadores para cada pin y asignando el valor del contador
         botones.debounceCounter[i] = (uint16_t*)malloc(sizeof(uint16_t));
+        *(botones.debounceCounter[i]) = botones.delay;
+        // Definiendo espacio de memoria para el arreglo de las flag de presionado para cada pin y asignando el valor por defecto 0 
+        botones.presionado[i] = (uint8_t*)malloc(sizeof(uint8_t));
+        *(botones.presionado[i]) = 0;
+        // Definiendo espacio de memoria para el arreglo de las flag de liberado para cada pin y asignando el valor por defecto 0
+        botones.liberado[i] = (uint8_t*)malloc(sizeof(uint8_t));
+        *(botones.liberado[i]) = 0;
+        // Definiendo espacio de memoria para el arreglo que guarda las lecturas de los pines digitales y asignando por defecto 0 
+        botones.val[i] = (uint8_t*)malloc(sizeof(uint8_t));
+        *(botones.val[i]) = 0;
+
+        // Manejo de errores en la asignacion de memoria 
         if (botones.pins[i] == NULL || botones.estadoActual[i] == NULL || botones.debounceCounter[i] == NULL) {
             // Error: No se pudo asignar memoria
             return 0;
@@ -59,6 +75,20 @@ uint8_t setupTimer1() {
 ISR(TIMER1_COMPA_vect) {
     // Cambiar el estado del LED en el pin 13
     digitalWrite(13, !digitalRead(13));
+
+    for (uint8_t i = 0; i < botones.numero_pulsadores ; i++)
+    {
+        if ((*(botones.estadoActual[i]) == ESTADO_FALLING) || (*(botones.estadoActual[i]) == ESTADO_RISING))
+        {
+            *(botones.debounceCounter[i]) =  (*(botones.debounceCounter[i]) > 0) ? (*(botones.debounceCounter[i])-1) : botones.delay;
+        } else{
+            *(botones.debounceCounter[i]) = botones.delay;
+        }
+        
+    }
+    
+
+
 }
 
 void setup(){
@@ -67,9 +97,12 @@ void setup(){
     //Inicializacion de botones
     uint8_t bt = initBotones() ? Serial.println(GOOD_INIT_BUTTONS) : Serial.println(BAD_INIT_BUTTONS) ;
     delay(100);
+    // Inicializacion del timer
+
     uint8_t tm = setupTimer1() ? Serial.println(GOOD_INIT_TIMER) : Serial.println(BAD_INIT_TIMER);
     delay(100);
 
+    // Inicio de los pines de los pulsadores
     for (int i = 0; i < botones.numero_pulsadores; i++) {
         pinMode(*(botones.pins[i]), INPUT_PULLUP);
     }

@@ -4,8 +4,6 @@
 #include <Arduino.h>
 
 
-estado_t estadoActuale;
-
 
 void init_MEF(pulsantes* pulsadores){
     for (int i = 0; i < pulsadores->numero_pulsadores; i++)
@@ -15,31 +13,48 @@ void init_MEF(pulsantes* pulsadores){
       
 }
 
-int act_MEF(){
+void act_MEF(pulsantes* pulsadores){
 
-    int val = digitalRead(SW1);
-    static int prevVal = 0;
-    bool cambio = val ^ prevVal;
-    switch (estadoActuale)
-    {
-    case ESTADO_UP:
-        // inicializar hardware
-        estadoActuale = val ? ESTADO_UP : ESTADO_DOWN;
-        return 1;
-        break;
-    case ESTADO_FALLING:
-        //Serial.println("Estado up");
-        return 2;
-        break;
-    case ESTADO_DOWN:
-
-        return 3;
-        break;
-    case ESTADO_RISING:
-        return 4;
-        break;
-    default:
-        //init_MEF();
-        break;
+     for (uint8_t i = 0; i < pulsadores->numero_pulsadores; i++)
+    {   
+        switch (*(pulsadores->estadoActual[i]))
+        {
+        case ESTADO_UP:
+            // inicializar hardware
+            *(pulsadores->val[i]) = digitalRead(*(pulsadores->pins[i]));
+            *(pulsadores->estadoActual[i]) = *(pulsadores->val[i]) ? ESTADO_FALLING : ESTADO_UP;
+            *(pulsadores->presionado[i]) = *(pulsadores->val[i]) ? 1:0;
+            //return 1;
+            break;
+        case ESTADO_FALLING:
+            //Serial.println("Estado up");
+            if (*(pulsadores->debounceCounter[i])== 0)
+            {
+                *(pulsadores->val[i]) = digitalRead(*(pulsadores->pins[i]));
+                *(pulsadores->estadoActual[i]) = *(pulsadores->presionado[i]) ^ *(pulsadores->val[i]) ? ESTADO_UP : ESTADO_DOWN;
+            }
+            //return 2;
+            break;
+        case ESTADO_DOWN:
+            *(pulsadores->val[i]) = digitalRead(*(pulsadores->pins[i]));
+            *(pulsadores->estadoActual[i]) = *(pulsadores->val[i]) == 0 ? ESTADO_RISING : ESTADO_DOWN;
+            *(pulsadores->liberado[i]) = *(pulsadores->val[i]) == 0 ? 1:0;
+            //return 3;
+            break;
+        case ESTADO_RISING:
+            if (*(pulsadores->debounceCounter[i])== 0)
+            {
+                *(pulsadores->val[i]) = digitalRead(*(pulsadores->pins[i]));
+                *(pulsadores->estadoActual[i]) = *(pulsadores->presionado[i]) ^ *(pulsadores->val[i]) ? ESTADO_UP : ESTADO_DOWN;   
+            }
+        
+            //return 4;
+            break;
+        default:
+            //init_MEF();
+            break;
+        }
+        
     }
+    
 }
